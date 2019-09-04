@@ -77,7 +77,12 @@ public class CustomHeart : MonoBehaviour
     float runtime = 0f;
     int currentIndex = 0;
 
-
+    public enum CurveType
+    {
+        Curve1, Curve2
+    }
+    public CurveType curveType;
+    Curve curve;
 
     void Start()
     {
@@ -125,6 +130,17 @@ public class CustomHeart : MonoBehaviour
         targetVertex = mVertices[selectedIndices[currentIndex]];
         starttime = Time.time;
         isAnimate = true;
+
+        if (curveType == CurveType.Curve1)
+        {
+            CurveType1();
+        }
+        else if (curveType == CurveType.Curve2)
+        {
+            CurveType2();
+        }
+
+
     }
 
     void FixedUpdate()
@@ -174,6 +190,11 @@ public class CustomHeart : MonoBehaviour
 
             float distance = Mathf.Sqrt(sqrMagnitude);
 
+            float increment = curve.GetPoint(distance).y * force; //1
+            Vector3 translate = (vert * increment) * Time.deltaTime; //2
+            Quaternion rotation = Quaternion.Euler(translate);
+            Matrix4x4 m = Matrix4x4.TRS(translate, rotation, Vector3.one);
+            mVertices[i] = m.MultiplyPoint3x4(mVertices[i]);
         }
         oMesh.vertices = mVertices;
         oMesh.RecalculateNormals();
@@ -188,10 +209,20 @@ public class CustomHeart : MonoBehaviour
 
     void CurveType1()
     {
+        Vector3[] curvepoints = new Vector3[3]; //1
+        curvepoints[0] = new Vector3(0, 1, 0);
+        curvepoints[1] = new Vector3(0.5f, 0.5f, 0);
+        curvepoints[2] = new Vector3(1, 0, 0);
+        curve = new Curve(curvepoints[0], curvepoints[1], curvepoints[2], false); //2
     }
 
     void CurveType2()
     {
+        Vector3[] curvepoints = new Vector3[3]; //1
+        curvepoints[0] = new Vector3(0, 0, 0);
+        curvepoints[1] = new Vector3(0.5f, 1, 0);
+        curvepoints[2] = new Vector3(1, 0, 0);
+        curve = new Curve(curvepoints[0], curvepoints[1], curvepoints[2], true); //2
     }
 
     public void ShowNormals()
