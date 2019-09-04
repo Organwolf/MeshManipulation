@@ -61,7 +61,13 @@ public class HeartMesh : MonoBehaviour
     public List<int> selectedIndices = new List<int>();
     public float pickSize = 0.01f;
 
-
+    public float radiusofeffect = 0.3f; //1 
+    public float pullvalue = 0.3f; //2
+    public float duration = 1.2f; //3
+    int currentIndex = 0; //4
+    bool isAnimate = false;
+    float starttime = 0f;
+    float runtime = 0f;
 
     void Start()
     {
@@ -72,7 +78,7 @@ public class HeartMesh : MonoBehaviour
     {
         oFilter = GetComponent<MeshFilter>();
         isMeshReady = false;
-
+        currentIndex = 0;
         if (isEditMode)
         {
             oMesh = oFilter.sharedMesh;
@@ -97,21 +103,78 @@ public class HeartMesh : MonoBehaviour
             {
                 mVertices[i] = oVertices[i];
             }
+            StartDisplacement();
         }
 
     }
 
     public void StartDisplacement()
     {
+        targetVertex = oVertices[selectedIndices[currentIndex]]; //1
+        starttime = Time.time; //2
+        isAnimate = true;
     }
 
+    void FixedUpdate() //1
+    {
+        if (!isAnimate) //2
+        {
+            return;
+        }
+
+        runtime = Time.time - starttime; //3
+
+        if (runtime < duration)  //4
+        {
+            Vector3 targetVertexPos = oFilter.transform.InverseTransformPoint(targetVertex);
+            DisplaceVertices(targetVertexPos, pullvalue, radiusofeffect);
+        }
+        else //5
+        {
+            currentIndex++;
+            if (currentIndex < selectedIndices.Count) //6
+            {
+                StartDisplacement();
+            }
+            else //7
+            {
+                oMesh = GetComponent<MeshFilter>().mesh;
+                isAnimate = false;
+                isMeshReady = true;
+            }
+        }
+    }
 
     void DisplaceVertices(Vector3 targetVertexPos, float force, float radius)
     {
+        Vector3 currentVertexPos = Vector3.zero;
+        float sqrRadius = radius * radius; //1
+
+        for (int i = 0; i < mVertices.Length; i++) //2
+        {
+            currentVertexPos = mVertices[i];
+            float sqrMagnitute = (currentVertexPos - targetVertexPos).sqrMagnitude; //3
+            if (sqrMagnitute > sqrRadius)
+            {
+                continue; //4
+            }
+            float distance = Mathf.Sqrt(sqrMagnitute); //5
+            float falloff = GaussFalloff(distance, radius);
+            Vector3 translate = (currentVertexPos * force) * falloff; //6
+            translate.z = 0f;
+            Quaternion rotation = Quaternion.Euler(translate);
+            Matrix4x4 m = Matrix4x4.TRS(translate, rotation, Vector3.one);
+            mVertices[i] = m.MultiplyPoint3x4(currentVertexPos);
+        }
+        oMesh.vertices = mVertices; //7
+        oMesh.RecalculateNormals();
     }
 
     public void ClearAllData()
     {
+        selectedIndices = new List<int>();
+        targetIndex = 0;
+        targetVertex = Vector3.zero;
     }
 
     public Mesh SaveMesh()
