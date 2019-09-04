@@ -180,6 +180,10 @@ public class HeartMesh : MonoBehaviour
     public Mesh SaveMesh()
     {
         Mesh nMesh = new Mesh();
+        nMesh.name = "HeartMesh";
+        nMesh.vertices = oMesh.vertices;
+        nMesh.triangles = oMesh.triangles;
+        nMesh.normals = oMesh.normals;
 
         return nMesh;
     }

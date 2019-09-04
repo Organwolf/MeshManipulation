@@ -108,7 +108,33 @@ public class HeartMeshInspector : Editor
         {
             mesh.ClearAllData();
         }
+
+        if (!mesh.isEditMode && mesh.isMeshReady)
+        {
+            string path = "Assets/Prefabs/CustomHeart.prefab"; //1
+
+            if (GUILayout.Button("Save Mesh"))
+            {
+                mesh.isMeshReady = false;
+                Object pfObj = AssetDatabase.LoadAssetAtPath(path, typeof(GameObject)); //2
+                Object pfRef = AssetDatabase.LoadAssetAtPath(path, typeof(GameObject));
+                GameObject gameObj = (GameObject)PrefabUtility.InstantiatePrefab(pfObj);
+                Mesh pfMesh = (Mesh)AssetDatabase.LoadAssetAtPath(path, typeof(Mesh)); //3
+                if (!pfMesh)
+                {
+                    pfMesh = new Mesh();
+                }
+                else
+                {
+                    pfMesh.Clear();
+                }
+                pfMesh = mesh.SaveMesh(); //4
+                AssetDatabase.AddObjectToAsset(pfMesh, path);
+
+                gameObj.GetComponentInChildren<MeshFilter>().mesh = pfMesh; //5
+                PrefabUtility.ReplacePrefab(gameObj, pfRef, ReplacePrefabOptions.Default); //6
+                Object.DestroyImmediate(gameObj); //7
+            }
+        }
     }
-
-
 }

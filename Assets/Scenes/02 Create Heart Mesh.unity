@@ -1248,11 +1248,11 @@ MonoBehaviour:
   isMeshReady: 0
   isEditMode: 0
   showTransformHandle: 0
-  selectedIndices: 
+  selectedIndices: aa010000ee000000
   pickSize: 0.01
-  radiusofeffect: 0.18
-  pullvalue: 1.14
-  duration: 0.56
+  radiusofeffect: 0.7
+  pullvalue: 0.13
+  duration: 1.2
 --- !u!1 &724161287
 GameObject:
   m_ObjectHideFlags: 0
